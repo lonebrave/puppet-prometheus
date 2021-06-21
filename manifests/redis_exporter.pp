@@ -31,7 +31,7 @@
 #  Whether to create user or rely on external code for that
 # @param namespace
 #  Namespace for the metrics, defaults to `redis`.
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -72,7 +72,7 @@ class prometheus::redis_exporter (
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
   String[1] $namespace                    = 'redis',
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   String $extra_options                   = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $arch                         = $prometheus::real_arch,
@@ -85,7 +85,7 @@ class prometheus::redis_exporter (
 ) inherits prometheus {
   $release = "v${version}"
 
-  $real_download_url = pick($download_url, "${download_url_base}/download/${release}/${package_name}-${release}.${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url, "${download_url_base}/download/${release}/${package_name}-${release}.${os_type}-${arch}.${download_extension}")
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
     default => undef,
@@ -104,7 +104,7 @@ class prometheus::redis_exporter (
       # redis_exporter lacks before version 1.0.0
       # TODO: patch prometheus::daemon to support custom extract directories
       $real_install_method = 'none'
-      $install_dir = "/opt/${service_name}-${version}.${os}-${arch}"
+      $install_dir = "/opt/${service_name}-${version}.${os_type}-${arch}"
       file { $install_dir:
         ensure => 'directory',
         owner  => 'root',
@@ -135,7 +135,7 @@ class prometheus::redis_exporter (
     install_method     => $real_install_method,
     version            => $release,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     bin_dir            => $bin_dir,
     notify_service     => $notify_service,

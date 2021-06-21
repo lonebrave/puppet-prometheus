@@ -27,7 +27,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -72,7 +72,7 @@ class prometheus::mongodb_exporter (
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   String $extra_options                   = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $arch                         = $prometheus::real_arch,
@@ -84,7 +84,7 @@ class prometheus::mongodb_exporter (
   Optional[Hash] $scrape_job_labels       = undef,
 ) inherits prometheus {
   #Please provide the download_url for versions < 0.9.0
-  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${version}.${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${version}.${os_type}-${arch}.${download_extension}")
 
   if versioncmp($version, '0.7.0') < 0 or versioncmp($version, '0.20.4') >= 0 {
     $archive_bin_path = undef  # use default
@@ -108,7 +108,7 @@ class prometheus::mongodb_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,

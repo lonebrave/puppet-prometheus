@@ -23,7 +23,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -53,7 +53,7 @@ class prometheus::graphite_exporter (
   String[1] $user,
   String[1] $version,
   String $options,
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   Prometheus::Initstyle $init_style       = $facts['service_provider'],
   Prometheus::Install $install_method     = $prometheus::install_method,
   Optional[Prometheus::Uri] $download_url = undef,
@@ -72,7 +72,7 @@ class prometheus::graphite_exporter (
   Boolean $manage_user                    = true,
   Boolean $manage_group                   = true,
 ) inherits prometheus {
-  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${version}.${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${version}.${os_type}-${arch}.${download_extension}")
 
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -83,7 +83,7 @@ class prometheus::graphite_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,

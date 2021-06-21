@@ -25,7 +25,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -68,7 +68,7 @@ class prometheus::dellhw_exporter (
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   String $extra_options                   = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $arch                         = $prometheus::real_arch,
@@ -82,7 +82,7 @@ class prometheus::dellhw_exporter (
   Optional[String[1]] $bin_name           = undef,
   Stdlib::Unixpath $omreport_path         = '/opt/dell/srvadmin/bin/omreport',
 ) inherits prometheus {
-  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/dellhw_exporter-${version}.${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/dellhw_exporter-${version}.${os_type}-${arch}.${download_extension}")
 
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -97,7 +97,7 @@ class prometheus::dellhw_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,
@@ -121,6 +121,6 @@ class prometheus::dellhw_exporter (
     scrape_job_name    => $scrape_job_name,
     scrape_job_labels  => $scrape_job_labels,
     bin_name           => $bin_name,
-    archive_bin_path   => "/opt/dellhw_exporter-${version}.${os}-${arch}/dellhw_exporter",
+    archive_bin_path   => "/opt/dellhw_exporter-${version}.${os_type}-${arch}/dellhw_exporter",
   }
 }

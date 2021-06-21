@@ -25,7 +25,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -77,7 +77,7 @@ class prometheus::postgres_exporter (
   Boolean $manage_group                         = true,
   Boolean $manage_service                       = true,
   Boolean $manage_user                          = true,
-  String[1] $os                                 = downcase($facts['kernel']),
+  String[1] $os_type                            = downcase($facts['kernel']),
   String $options                               = '',
   Optional[Prometheus::Uri] $download_url       = undef,
   Optional[String] $postgres_pass               = undef,
@@ -92,7 +92,7 @@ class prometheus::postgres_exporter (
 ) inherits prometheus {
   $release = "v${version}"
 
-  $real_download_url = pick($download_url, "${download_url_base}/download/${release}/${package_name}_${release}_${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url, "${download_url_base}/download/${release}/${package_name}_${release}_${os_type}-${arch}.${download_extension}")
 
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -128,7 +128,7 @@ class prometheus::postgres_exporter (
     # postgres_exporter lacks.
     # TODO: patch prometheus::daemon to support custom extract directories
     $exporter_install_method = 'none'
-    $install_dir = "/opt/${service_name}-${version}.${os}-${arch}"
+    $install_dir = "/opt/${service_name}-${version}.${os_type}-${arch}"
     file { $install_dir:
       ensure => 'directory',
       owner  => 'root',
@@ -160,7 +160,7 @@ class prometheus::postgres_exporter (
     version            => $version,
     download_extension => $download_extension,
     env_vars           => $env_vars,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     bin_dir            => $bin_dir,
     notify_service     => $notify_service,

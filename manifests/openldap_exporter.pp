@@ -24,7 +24,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -64,7 +64,7 @@ class prometheus::openldap_exporter (
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   String $options                         = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $bin_dir                      = $prometheus::bin_dir,
@@ -77,7 +77,7 @@ class prometheus::openldap_exporter (
   Optional[String[1]] $ldap_password      = undef,
 ) inherits prometheus {
   $release = "v${version}"
-  $real_download_url = pick($download_url,"${download_url_base}/download/${release}/${package_name}-${os}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/${release}/${package_name}-${os_type}")
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
     default => undef,
@@ -95,7 +95,7 @@ class prometheus::openldap_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,
     notify_service     => $notify_service,

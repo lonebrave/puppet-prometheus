@@ -25,7 +25,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -55,7 +55,7 @@ class prometheus::ipsec_exporter (
   String[1] $service_name                 = 'ipsec_exporter',
   String[1] $user                         = 'ipsec-exporter',
   String[1] $version                      = '0.3.2',
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   String $options                         = '',
   Prometheus::Initstyle $init_style       = $facts['service_provider'],
   Prometheus::Install $install_method     = $prometheus::install_method,
@@ -82,9 +82,9 @@ class prometheus::ipsec_exporter (
   }
   else {
     $release          = "v${version}"
-    $archive_bin_path = "/opt/ipsec_exporter-v${version}.${os}-${arch}"
+    $archive_bin_path = "/opt/ipsec_exporter-v${version}.${os_type}-${arch}"
   }
-  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${release}.${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${release}.${os_type}-${arch}.${download_extension}")
 
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -95,7 +95,7 @@ class prometheus::ipsec_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,

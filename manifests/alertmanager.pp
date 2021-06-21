@@ -47,7 +47,7 @@
 #  Should puppet manage the service? (default true)
 # @param manage_user
 #  Whether to create user or rely on external code for that
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -119,7 +119,7 @@ class prometheus::alertmanager (
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os                           = $prometheus::os,
+  String[1] $os_type                      = $prometheus::os_type,
   String $extra_options                   = '',
   Optional[String] $download_url          = undef,
   String[1] $config_mode                  = $prometheus::config_mode,
@@ -128,10 +128,10 @@ class prometheus::alertmanager (
 ) inherits prometheus {
   if( versioncmp($version, '0.3.0') == -1 ) {
     $real_download_url    = pick($download_url,
-    "${download_url_base}/download/${version}/${package_name}-${version}.${os}-${arch}.${download_extension}")
+    "${download_url_base}/download/${version}/${package_name}-${version}.${os_type}-${arch}.${download_extension}")
   } else {
     $real_download_url    = pick($download_url,
-    "${download_url_base}/download/v${version}/${package_name}-${version}.${os}-${arch}.${download_extension}")
+    "${download_url_base}/download/v${version}/${package_name}-${version}.${os_type}-${arch}.${download_extension}")
   }
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -169,7 +169,7 @@ class prometheus::alertmanager (
     # If version >= 0.10.0 then install amtool - Alertmanager validation tool
     file { "${bin_dir}/amtool":
       ensure => link,
-      target => "/opt/${package_name}-${version}.${os}-${arch}/amtool",
+      target => "/opt/${package_name}-${version}.${os_type}-${arch}/amtool",
     }
 
     if $manage_config {
@@ -230,7 +230,7 @@ class prometheus::alertmanager (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type                 => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,
