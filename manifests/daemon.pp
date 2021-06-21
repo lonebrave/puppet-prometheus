@@ -53,7 +53,7 @@ define prometheus::daemon (
   String[1] $group,
   Prometheus::Install $install_method     = $prometheus::install_method,
   String $download_extension              = $prometheus::download_extension,
-  String[1] $os                           = $prometheus::os,
+  String[1] $kernel                       = $prometheus::kernel,
   String[1] $arch                         = $prometheus::real_arch,
   Stdlib::Absolutepath $bin_dir           = $prometheus::bin_dir,
   String[1] $bin_name                     = $name,
@@ -72,7 +72,7 @@ define prometheus::daemon (
   Stdlib::Absolutepath $env_file_path     = $prometheus::env_file_path,
   Optional[String[1]] $extract_command    = $prometheus::extract_command,
   Stdlib::Absolutepath $extract_path      = '/opt',
-  Stdlib::Absolutepath $archive_bin_path  = "/opt/${name}-${version}.${os}-${arch}/${name}",
+  Stdlib::Absolutepath $archive_bin_path  = "/opt/${name}-${version}.${kernel}-${arch}/${name}",
   Boolean $export_scrape_job              = false,
   Stdlib::Host $scrape_host               = $facts['networking']['fqdn'],
   Optional[Stdlib::Port] $scrape_port     = undef,
@@ -83,17 +83,17 @@ define prometheus::daemon (
   case $install_method {
     'url': {
       if $download_extension == '' {
-        file { "/opt/${name}-${version}.${os}-${arch}":
+        file { "/opt/${name}-${version}.${kernel}-${arch}":
           ensure => directory,
           owner  => 'root',
           group  => 0, # 0 instead of root because OS X uses "wheel".
           mode   => '0755',
         }
-        -> archive { "/opt/${name}-${version}.${os}-${arch}/${name}":
+        -> archive { "/opt/${name}-${version}.${kernel}-${arch}/${name}":
           ensure          => present,
           source          => $real_download_url,
           checksum_verify => false,
-          before          => File["/opt/${name}-${version}.${os}-${arch}/${name}"],
+          before          => File["/opt/${name}-${version}.${kernel}-${arch}/${name}"],
         }
       } else {
         archive { "/tmp/${name}-${version}.${download_extension}":

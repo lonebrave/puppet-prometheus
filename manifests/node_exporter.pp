@@ -73,7 +73,7 @@ class prometheus::node_exporter (
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $kernel                           = downcase($facts['kernel']),
   String $extra_options                   = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $arch                         = $prometheus::real_arch,
@@ -95,7 +95,7 @@ class prometheus::node_exporter (
   else {
     $release = $version
   }
-  $real_download_url = pick($download_url,"${download_url_base}/download/${release}/${package_name}-${version}.${os}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/${release}/${package_name}-${version}.${kernel}-${arch}.${download_extension}")
   if $collectors {
     warning('Use of $collectors parameter is deprecated')
   }
@@ -121,7 +121,7 @@ class prometheus::node_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    kernel             => $kernel,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,
