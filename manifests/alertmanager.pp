@@ -230,7 +230,7 @@ class prometheus::alertmanager (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os_type                 => $os_type,
+    os_type            => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     bin_dir            => $bin_dir,
