@@ -30,7 +30,7 @@ describe 'prometheus::apache_exporter' do
           {
             version: '0.5.0',
             arch: 'amd64',
-            os: 'linux',
+            os_type: 'linux',
             bin_dir: '/usr/local/bin',
             install_method: 'url'
           }
@@ -58,7 +58,7 @@ describe 'prometheus::apache_exporter' do
             extra_options: '-test',
             version: '0.4.0',
             arch: 'amd64',
-            os: 'linux',
+            os_type: 'linux',
             bin_dir: '/usr/local/bin',
             install_method: 'url'
           }
@@ -86,7 +86,7 @@ describe 'prometheus::apache_exporter' do
             extra_options: '--test',
             version: '0.8.0',
             arch: 'amd64',
-            os: 'linux',
+            os_type: 'linux',
             bin_dir: '/usr/local/bin',
             install_method: 'url'
           }

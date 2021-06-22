@@ -12,7 +12,7 @@ describe 'prometheus::postgres_exporter' do
           {
             version: '0.4.6',
             arch: 'amd64',
-            os: 'linux',
+            os_type: 'linux',
             bin_dir: '/usr/local/bin',
             install_method: 'url',
             postgres_user: 'username',
