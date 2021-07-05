@@ -31,7 +31,7 @@
 #  Whether to create user or rely on external code for that
 # @param modules
 #  Hash of SSL exporter modules
-# @param os
+# @param os_type
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -71,7 +71,7 @@ class prometheus::ssl_exporter (
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os                           = downcase($facts['kernel']),
+  String[1] $os_type                      = downcase($facts['kernel']),
   String $extra_options                   = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $config_mode                  = $prometheus::config_mode,
@@ -85,7 +85,7 @@ class prometheus::ssl_exporter (
   Optional[String[1]] $bin_name           = undef,
   Hash $modules                           = {},
 ) inherits prometheus {
-  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}_${version}_${os}_${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}_${version}_${os_type}_${arch}.${download_extension}")
 
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -107,7 +107,7 @@ class prometheus::ssl_exporter (
   ], ' ')
 
   # SSL exporter is not packaged into a directory
-  $extract_path = "/opt/${service_name}-${version}.${os}-${arch}"
+  $extract_path = "/opt/${service_name}-${version}.${os_type}-${arch}"
   file { $extract_path:
     ensure => 'directory',
     owner  => 'root',
@@ -120,7 +120,7 @@ class prometheus::ssl_exporter (
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os                 => $os,
+    os_type            => $os_type,
     arch               => $arch,
     real_download_url  => $real_download_url,
     extract_path       => $extract_path,
