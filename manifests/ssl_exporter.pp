@@ -1,10 +1,10 @@
-# @summary This module manages prometheus node ipmi_exporter (https://github.com/soundcloud/ipmi_exporter)
+# @summary This module manages prometheus ssl_exporter (https://github.com/ribbybibby/ssl_exporter)
 # @param arch
 #  Architecture (amd64 or i386)
 # @param bin_dir
 #  Directory where binaries are located
 # @param config_file
-#   Path to IPMI exporter configuration file
+#   Path to SSL exporter configuration file
 # @param config_mode
 #  The permissions of the configuration files
 # @param download_extension
@@ -30,8 +30,8 @@
 # @param manage_user
 #  Whether to create user or rely on external code for that
 # @param modules
-#  Hash of IPMI exporter modules
-# @param os_type
+#  Hash of SSL exporter modules
+# @param os
 #  Operating system (linux is the only one supported)
 # @param package_ensure
 #  If package, then use this for package ensure default 'latest'
@@ -46,32 +46,32 @@
 # @param service_ensure
 #  State ensured for the service (default 'running')
 # @param service_name
-#  Name of the node exporter service (default 'ipmi_exporter')
+#  Name of the node exporter service (default 'ssk_exporter')
 # @param user
 #  User which runs the service
 # @param version
 #  The binary release version
-class prometheus::ipmi_exporter (
-  Stdlib::Absolutepath $config_file       = '/etc/ipmi_exporter.yaml',
-  String[1] $package_name                 = 'ipmi_exporter',
+class prometheus::ssl_exporter (
+  Stdlib::Absolutepath $config_file       = '/etc/ssl_exporter.yaml',
+  String[1] $package_name                 = 'ssl_exporter',
   String $download_extension              = 'tar.gz',
-  String[1] $version                      = '1.4.0',
+  String[1] $version                      = '2.2.1',
   String[1] $package_ensure               = 'latest',
-  String[1] $user                         = 'ipmi-exporter',
-  String[1] $group                        = 'ipmi-exporter',
-  Prometheus::Uri $download_url_base      = 'https://github.com/soundcloud/ipmi_exporter/releases',
+  String[1] $user                         = 'ssl-exporter',
+  String[1] $group                        = 'ssl-exporter',
+  Prometheus::Uri $download_url_base      = 'https://github.com/ribbybibby/ssl_exporter/releases',
   Array[String] $extra_groups             = [],
   Prometheus::Initstyle $init_style       = $facts['service_provider'],
   Boolean $purge_config_dir               = true,
   Boolean $restart_on_change              = true,
   Boolean $service_enable                 = true,
   Stdlib::Ensure::Service $service_ensure = 'running',
-  String[1] $service_name                 = 'ipmi_exporter',
+  String[1] $service_name                 = 'ssl_exporter',
   Prometheus::Install $install_method     = $prometheus::install_method,
   Boolean $manage_group                   = true,
   Boolean $manage_service                 = true,
   Boolean $manage_user                    = true,
-  String[1] $os_type                      = downcase($facts['kernel']),
+  String[1] $os                           = downcase($facts['kernel']),
   String $extra_options                   = '',
   Optional[Prometheus::Uri] $download_url = undef,
   String[1] $config_mode                  = $prometheus::config_mode,
@@ -79,26 +79,13 @@ class prometheus::ipmi_exporter (
   String[1] $bin_dir                      = $prometheus::bin_dir,
   Optional[Stdlib::Host] $scrape_host     = undef,
   Boolean $export_scrape_job              = false,
-  Stdlib::Port $scrape_port               = 9290,
-  String[1] $scrape_job_name              = 'ipmi',
+  Stdlib::Port $scrape_port               = 9219,
+  String[1] $scrape_job_name              = 'ssl',
   Optional[Hash] $scrape_job_labels       = undef,
   Optional[String[1]] $bin_name           = undef,
-  Boolean $unprivileged                   = true,
   Hash $modules                           = {},
-  Stdlib::Absolutepath $script_dir        = '/usr/local/bin',
 ) inherits prometheus {
-  package { 'freeipmi':
-    ensure => 'present',
-  }
-  # Prometheus added a 'v' on the release name before 1.4.0
-  if versioncmp ($version, '1.4.0') >= 0 {
-    $release = $version
-  }
-  else {
-    $release = "v${version}"
-  }
-
-  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}-${release}.${os_type}-${arch}.${download_extension}")
+  $real_download_url = pick($download_url,"${download_url_base}/download/v${version}/${package_name}_${version}_${os}_${arch}.${download_extension}")
 
   $notify_service = $restart_on_change ? {
     true    => Service[$service_name],
@@ -110,72 +97,33 @@ class prometheus::ipmi_exporter (
     owner   => $user,
     group   => $group,
     mode    => $config_mode,
-    content => epp('prometheus/ipmi_exporter.yaml.epp', { 'modules' => $modules }),
+    content => epp('prometheus/ssl_exporter.yaml.epp', { 'modules' => $modules }),
     notify  => $notify_service,
-  }
-
-  if $unprivileged {
-    # crazy workaround from https://github.com/soundcloud/ipmi_exporter#running-as-unprivileged-user
-    sudo::conf { $service_name:
-      ensure         => 'present',
-      content        => join([
-          "${user} ALL = NOPASSWD: /usr/sbin/ipmimonitoring",
-          "${user} ALL = NOPASSWD: /usr/sbin/ipmi-sensors",
-          "${user} ALL = NOPASSWD: /usr/sbin/ipmi-dcmi",
-          "${user} ALL = NOPASSWD: /usr/sbin/ipmi-raw",
-          "${user} ALL = NOPASSWD: /usr/sbin/bmc-info",
-          "${user} ALL = NOPASSWD: /usr/sbin/ipmi-chassis",
-          "${user} ALL = NOPASSWD: /usr/sbin/ipmi-sel",
-      ], "\n"),
-      sudo_file_name => $service_name,
-    }
-
-    file { "${script_dir}/ipmi-sudo.sh":
-      owner   => $user,
-      group   => $group,
-      mode    => '0750',
-      content => join([
-          '#!/bin/bash',
-          'sudo /usr/sbin/$(basename $0) "$@"',
-      ], "\n"),
-    }
-
-    $sudo_rewrites = [
-      'ipmimonitoring',
-      'ipmi-sensors',
-      'ipmi-dcmi',
-      'ipmi-raw',
-      'bmc-info',
-      'ipmi-chassis',
-      'ipmi-sel',
-    ]
-
-    $sudo_rewrites.each |String $rewrite| {
-      file { "${script_dir}/${rewrite}":
-        ensure  => 'link',
-        target  => "${script_dir}/ipmi-sudo.sh",
-        require => File["${script_dir}/ipmi-sudo.sh"],
-      }
-    }
-
-    $unprivileged_option = "--freeipmi.path=${script_dir}"
-  } else {
-    $unprivileged_option = ''
   }
 
   $options = join([
       "--config.file=${config_file}",
       $extra_options,
-      $unprivileged_option,
   ], ' ')
+
+  # SSL exporter is not packaged into a directory
+  $extract_path = "/opt/${service_name}-${version}.${os}-${arch}"
+  file { $extract_path:
+    ensure => 'directory',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+    before => Prometheus::Daemon[$service_name],
+  }
 
   prometheus::daemon { $service_name:
     install_method     => $install_method,
     version            => $version,
     download_extension => $download_extension,
-    os_type            => $os_type,
+    os                 => $os,
     arch               => $arch,
     real_download_url  => $real_download_url,
+    extract_path       => $extract_path,
     bin_dir            => $bin_dir,
     notify_service     => $notify_service,
     package_name       => $package_name,
@@ -197,6 +145,5 @@ class prometheus::ipmi_exporter (
     scrape_job_name    => $scrape_job_name,
     scrape_job_labels  => $scrape_job_labels,
     bin_name           => $bin_name,
-    require            => Package['freeipmi'],
   }
 }

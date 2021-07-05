@@ -60,6 +60,7 @@ prometheus::alertmanager::route:
   'group_interval': '5m'
   'repeat_interval': '3h'
   'receiver': 'Admin'
+prometheus::alertmanager::mute_time_intervals: []
 prometheus::alertmanager::storage_path: '/var/lib/alertmanager'
 prometheus::alertmanager::templates: [ "%{lookup('prometheus::alertmanager::config_dir')}/*.tmpl" ]
 prometheus::alertmanager::user: 'alertmanager'
@@ -104,6 +105,7 @@ prometheus::global_config:
   'external_labels':
     'monitor': 'master'
 prometheus::group: 'prometheus'
+prometheus::include_default_scrape_configs: true
 prometheus::localstorage: '/var/lib/prometheus'
 prometheus::manage_config: true
 prometheus::mesos_exporter::server_type: 'master'
@@ -208,15 +210,7 @@ prometheus::beanstalkd_exporter::config: '/etc/beanstalkd-exporter.conf'
 prometheus::package_ensure: 'latest'
 prometheus::package_name: 'prometheus'
 prometheus::rule_files: []
-prometheus::scrape_configs:
-  - 'job_name': 'prometheus'
-    'scrape_interval': '10s'
-    'scrape_timeout': '10s'
-    'static_configs':
-      - 'targets':
-        - 'localhost:9090'
-        'labels':
-          'alias': 'Prometheus'
+prometheus::scrape_configs: []
 prometheus::remote_read_configs: []
 prometheus::remote_write_configs: []
 prometheus::shared_dir: '/usr/local/share/prometheus'
